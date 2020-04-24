@@ -352,6 +352,26 @@
 		};
 	};
 
+	i2c0_pins: i2c0 {
+		pins_bus {
+			pinmux = <PINMUX_GPIO204__FUNC_SCL0>,
+				 <PINMUX_GPIO205__FUNC_SDA0>;
+			bias-pull-up;
+			mediatek,pull-up-adv = <3>;
+			mediatek,drive-strength-adv = <7>;
+		};
+	};
+
+	i2c2_pins: i2c2 {
+		pins_bus {
+			pinmux = <PINMUX_GPIO141__FUNC_SCL2>,
+				 <PINMUX_GPIO142__FUNC_SDA2>;
+			bias-pull-up;
+			mediatek,pull-up-adv = <3>;
+			mediatek,drive-strength-adv = <7>;
+		};
+	};
+
 	i2c3_pins: i2c3 {
 		pins_bus {
 			pinmux = <PINMUX_GPIO160__FUNC_SCL3>,
@@ -416,12 +436,48 @@
 			output-low;
 		};
 	};
+
+	touchpad_pins: touchpad-pins {
+		touchpad_int {
+			pinmux = <PINMUX_GPIO15__FUNC_GPIO15>;
+			input-enable;
+			mediatek,pull-up-adv = <3>;
+		};
+	};
 };
 
 &pwm0 {
 	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&pwm0_pin_default>;
+};
+
+&i2c0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c0_pins>;
+	status = "okay";
+	clock-frequency = <100000>;
+};
+
+&i2c2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c2_pins>;
+	status = "okay";
+	clock-frequency = <100000>;
+
+	touchpad@15 {
+		compatible = "elan,ekth3000";
+		reg = <0x15>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&touchpad_pins>;
+
+		interrupt-parent = <&pio>;
+		interrupts = <15 IRQ_TYPE_LEVEL_LOW>;
+
+		wakeup-source;
+	};
+
 };
 
 &i2c3 {
