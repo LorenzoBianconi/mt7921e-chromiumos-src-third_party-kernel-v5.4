@@ -377,6 +377,16 @@
 		};
 	};
 
+	i2c1_pins: i2c1 {
+		pins_bus {
+			pinmux = <PINMUX_GPIO118__FUNC_SCL1>,
+				 <PINMUX_GPIO119__FUNC_SDA1>;
+			bias-pull-up;
+			mediatek,pull-up-adv = <3>;
+			mediatek,drive-strength-adv = <7>;
+		};
+	};
+
 	i2c2_pins: i2c2 {
 		pins_bus {
 			pinmux = <PINMUX_GPIO141__FUNC_SCL2>,
@@ -391,6 +401,16 @@
 		pins_bus {
 			pinmux = <PINMUX_GPIO160__FUNC_SCL3>,
 				 <PINMUX_GPIO161__FUNC_SDA3>;
+			bias-pull-up;
+			mediatek,pull-up-adv = <3>;
+			mediatek,drive-strength-adv = <7>;
+		};
+	};
+
+	i2c6_pins: i2c6 {
+		pins_bus {
+			pinmux = <PINMUX_GPIO200__FUNC_SCL6>,
+				 <PINMUX_GPIO201__FUNC_SDA6>;
 			bias-pull-up;
 			mediatek,pull-up-adv = <3>;
 			mediatek,drive-strength-adv = <7>;
@@ -495,6 +515,17 @@
 	pinctrl-0 = <&i2c0_pins>;
 	status = "okay";
 	clock-frequency = <100000>;
+
+	/* TODO: Add touchscreen */
+};
+
+&i2c1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c1_pins>;
+	status = "okay";
+	clock-frequency = <100000>;
+
+	/* TODO: Add audio components */
 };
 
 &i2c2 {
@@ -552,6 +583,15 @@
 			};
 		};
 	};
+};
+
+&i2c6 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c6_pins>;
+	status = "okay";
+	clock-frequency = <100000>;
+
+	/* TODO: Add SAR sensor. */
 };
 
 &spi1 {
