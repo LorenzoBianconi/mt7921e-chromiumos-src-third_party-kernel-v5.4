@@ -118,6 +118,23 @@
 
 		gpio = <&pio 127 GPIO_ACTIVE_HIGH>;
 	};
+
+	usb_vbus_5v0: fixedregulator@0 {
+		compatible = "regulator-fixed";
+		regulator-name = "vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		regulator-type = "voltage";
+		regulator-always-on;
+	};
+
+	usb_vbus_3v3: fixedregulator@1 {
+		compatible = "regulator-fixed";
+		regulator-name = "usb vbus";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+	};
 };
 
 /* for CORE */
@@ -731,4 +748,14 @@
 		interrupts = <171 IRQ_TYPE_EDGE_RISING>;
 	};
 
+};
+
+&xhci {
+	vusb33-supply = <&usb_vbus_3v3>;
+	vbus-supply = <&usb_vbus_5v0>;
+	/* TODO: Check all these parameters. */
+	/*usb3-lpm-capable;*/
+	wakeup-source;
+	/* mediatek,u3p-dis-msk = <0x1>; */
+	status = "okay";
 };
