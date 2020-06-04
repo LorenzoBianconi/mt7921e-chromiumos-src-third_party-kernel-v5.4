@@ -4,6 +4,7 @@
  * Author: Seiya Wang <seiya.wang@mediatek.com>
  */
 /dts-v1/;
+#include <dt-bindings/regulator/mtk,mt6315.h>
 #include "mt8192.dtsi"
 #include "mt6359.dtsi"
 
@@ -55,6 +56,54 @@
 &pmic {
 	interrupt-parent = <&pio>;
 	interrupts = <214 IRQ_TYPE_LEVEL_HIGH>;
+};
+
+&spmi {
+	grpid = <11>;
+	mt6315_6: mt6315@6 {
+		compatible = "mediatek,mt6315_6-regulator";
+		reg = <0x6 0 0xb 1>;
+
+		regulators {
+			mt6315_6_vbuck1: vbuck1 {
+				regulator-compatible = "vbuck1";
+				regulator-name = "Vbcpu";
+				regulator-min-microvolt = <300000>;
+				regulator-max-microvolt = <1193750>;
+				regulator-enable-ramp-delay = <256>;
+				regulator-allowed-modes = <0 1 2 4>;
+				regulator-always-on;
+				mtk,combined-regulator = <MT6315_VBUCK2 MT6315_VBUCK4>;
+			};
+
+			mt6315_6_vbuck3: vbuck3 {
+				regulator-compatible = "vbuck3";
+				regulator-name = "Vlcpu";
+				regulator-min-microvolt = <300000>;
+				regulator-max-microvolt = <1193750>;
+				regulator-enable-ramp-delay = <256>;
+				regulator-allowed-modes = <0 1 2 4>;
+				regulator-always-on;
+			};
+		};
+	};
+
+	mt6315_7: mt6315@7 {
+		compatible = "mediatek,mt6315_7-regulator";
+		reg = <0x7 0 0xb 1>;
+
+		regulators {
+			mt6315_7_vbuck1: vbuck1 {
+				regulator-compatible = "vbuck1";
+				regulator-name = "Vgpu";
+				regulator-min-microvolt = <300000>;
+				regulator-max-microvolt = <1193750>;
+				regulator-enable-ramp-delay = <256>;
+				regulator-allowed-modes = <0 1 2 4>;
+				mtk,combined-regulator = <MT6315_VBUCK2>;
+			};
+		};
+	};
 };
 
 &uart0 {
