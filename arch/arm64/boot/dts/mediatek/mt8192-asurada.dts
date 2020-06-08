@@ -36,25 +36,6 @@
 		reg = <0 0x40000000 0 0x80000000>;
 	};
 
-	mt6360_ldo3_reg: regulator@0 {
-		compatible = "regulator-fixed";
-		regulator-name = "mmc1_io";
-		/* TODO: This should be adjustable. */
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		enable-active-high;
-		regulator-always-on;
-	};
-
-	mt6360_ldo5_reg: regulator@0 {
-		compatible = "regulator-fixed";
-		regulator-name = "mmc1_power";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		enable-active-high;
-		regulator-always-on;
-	};
-
 	panel: panel {
 		compatible = "auo,b116xw03";
 		power-supply = <&pp3300_panel>;
@@ -965,6 +946,9 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&ec_ap_int_odl>;
 
+		#address-cells = <1>;
+		#size-cells = <0>;
+
 		i2c_tunnel: i2c-tunnel {
 			compatible = "google,cros-ec-i2c-tunnel";
 			google,remote-bus = <0>;
@@ -980,6 +964,20 @@
 			compatible = "google,extcon-usbc-cros-ec";
 			google,usb-port-id = <0>;
 			#extcon-cells = <0>;
+		};
+
+		mt6360_ldo3_reg: regulator@0 {
+			compatible = "google,cros-ec-regulator";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <3300000>;
+			reg = <0>;
+		};
+
+		mt6360_ldo5_reg: regulator@1 {
+			compatible = "google,cros-ec-regulator";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			reg = <1>;
 		};
 	};
 };
