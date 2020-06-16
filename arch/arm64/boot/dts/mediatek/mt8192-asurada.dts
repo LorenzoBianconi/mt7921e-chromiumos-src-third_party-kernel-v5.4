@@ -582,6 +582,16 @@
 		};
 	};
 
+	i2c7_pins: i2c7 {
+		pins_bus {
+			pinmux = <PINMUX_GPIO124__FUNC_SCL7>,
+				 <PINMUX_GPIO125__FUNC_SDA7>;
+			bias-pull-up;
+			mediatek,pull-up-adv = <3>;
+			mediatek,drive-strength-adv = <7>;
+		};
+	};
+
 	pp1000_mipibrdg_en: pp1000-mipibrdg-en {
 		pins1 {
 			pinmux = <PINMUX_GPIO129__FUNC_GPIO129>;
@@ -810,6 +820,15 @@
 	clock-frequency = <100000>;
 
 	/* TODO: Add SAR sensor. */
+};
+
+&i2c7 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c7_pins>;
+	status = "okay";
+	clock-frequency = <100000>;
+
+	/* TODO: Add ANX7625 external DP bridge. */
 };
 
 &nor_flash {
