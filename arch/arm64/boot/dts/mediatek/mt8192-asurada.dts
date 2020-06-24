@@ -460,6 +460,28 @@
 		};
 	};
 
+	pcie_pinmux: pcie_pinmux {
+		pcie_wake {
+			pinmux = <PINMUX_GPIO63__FUNC_PCIE_WAKE_N>;
+		};
+		pcie_pereset {
+			pinmux = <PINMUX_GPIO64__FUNC_PCIE_PERESET_N>;
+		};
+		pcie_clkreq {
+			pinmux = <PINMUX_GPIO65__FUNC_PCIE_CLKREQ_N>;
+		};
+		pcie_en_pp3300_wlan {
+			/* TODO: Model as a regulator */
+			pinmux = <PINMUX_GPIO130__FUNC_GPIO130>;
+			output-high;
+		};
+		/* TODO: Split and implement. */
+		wifi_kill {
+			pinmux = <PINMUX_GPIO132__FUNC_GPIO132>; /* WIFI_KILL_L */
+			output-high;
+		};
+	};
+
 	pwm0_pin_default: pwm0_pin_default {
 		pins_pwm {
 			pinmux = <PINMUX_GPIO40__FUNC_DISP_PWM>;
@@ -710,6 +732,12 @@
 	clock-frequency = <100000>;
 
 	/* TODO: Add SAR sensor. */
+};
+
+&pcie {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pcie_pinmux>;
 };
 
 &spi1 {
