@@ -36,6 +36,25 @@
 		reg = <0 0x40000000 0 0x80000000>;
 	};
 
+	mt6360_ldo3_reg: regulator@0 {
+		compatible = "regulator-fixed";
+		regulator-name = "mmc1_io";
+		/* TODO: This should be adjustable. */
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		enable-active-high;
+		regulator-always-on;
+	};
+
+	mt6360_ldo5_reg: regulator@0 {
+		compatible = "regulator-fixed";
+		regulator-name = "mmc1_power";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		enable-active-high;
+		regulator-always-on;
+	};
+
 	panel: panel {
 		compatible = "auo,b116xw03";
 		power-supply = <&pp3300_panel>;
@@ -207,6 +226,25 @@
 	non-removable;
 };
 
+&mmc1 {
+	status = "okay";
+	pinctrl-names = "default", "state_uhs";
+	pinctrl-0 = <&mmc1_pins_default>;
+	pinctrl-1 = <&mmc1_pins_uhs>;
+	bus-width = <4>;
+	max-frequency = <200000000>;
+	cap-sd-highspeed;
+	/*sd-uhs-sdr50;
+	sd-uhs-sdr104;*/
+	cd-gpios = <&pio 17 GPIO_ACTIVE_LOW>;
+	vmmc-supply = <&mt6360_ldo5_reg>;
+	vqmmc-supply = <&mt6360_ldo3_reg>;
+	no-mmc;
+	no-sdio;
+	assigned-clocks = <&topckgen CLK_TOP_MSDC30_1_SEL>;
+	assigned-clock-parents = <&topckgen CLK_TOP_MSDCPLL_D2>;
+};
+
 &dpi0 {
 	pinctrl-names = "sleep", "default";
 	pinctrl-0 = <&dpi_pin_default>;
@@ -339,6 +377,51 @@
 			pinmux = <PINMUX_GPIO191__FUNC_MSDC0_DSL>;
 			drive-strength = <4>;
 			mediatek,pull-down-adv = <2>;
+		};
+	};
+
+	mmc1_pins_default: mmc1default {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO54__FUNC_MSDC1_DAT0>,
+				 <PINMUX_GPIO56__FUNC_MSDC1_DAT1>,
+				 <PINMUX_GPIO55__FUNC_MSDC1_DAT2>,
+				 <PINMUX_GPIO53__FUNC_MSDC1_DAT3>,
+				 <PINMUX_GPIO52__FUNC_MSDC1_CMD>;
+			input-enable;
+			drive-strength = <3>;
+			mediatek,pull-up-adv = <1>;
+		};
+
+		pins_clk {
+			pinmux = <PINMUX_GPIO51__FUNC_MSDC1_CLK>;
+			drive-strength = <3>;
+			mediatek,pull-down-adv = <2>;
+		};
+
+		pins_insert {
+			pinmux = <PINMUX_GPIO17__FUNC_GPIO17>;
+			input-enable;
+			bias-pull-up;
+		};
+	};
+
+	mmc1_pins_uhs: mmc1@0 {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO54__FUNC_MSDC1_DAT0>,
+				 <PINMUX_GPIO56__FUNC_MSDC1_DAT1>,
+				 <PINMUX_GPIO55__FUNC_MSDC1_DAT2>,
+				 <PINMUX_GPIO53__FUNC_MSDC1_DAT3>,
+				 <PINMUX_GPIO52__FUNC_MSDC1_CMD>;
+			input-enable;
+			drive-strength = <3>;
+			mediatek,pull-up-adv = <1>;
+		};
+
+		pins_clk {
+			pinmux = <PINMUX_GPIO51__FUNC_MSDC1_CLK>;
+			drive-strength = <3>;
+			mediatek,pull-down-adv = <2>;
+			input-enable;
 		};
 	};
 
