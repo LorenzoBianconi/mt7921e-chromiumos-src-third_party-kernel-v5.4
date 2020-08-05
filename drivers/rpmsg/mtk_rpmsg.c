@@ -244,7 +244,7 @@ static void mtk_register_device_work_function(struct work_struct *register_work)
 	mutex_unlock(&subdev->channels_lock);
 }
 
-static int mtk_rpmsg_create_device(struct mtk_rpmsg_rproc_subdev *mtk_subdev,
+int mtk_rpmsg_create_device(struct mtk_rpmsg_rproc_subdev *mtk_subdev,
 				   char *name, u32 addr)
 {
 	struct mtk_rpmsg_channel_info *info;
@@ -263,6 +263,7 @@ static int mtk_rpmsg_create_device(struct mtk_rpmsg_rproc_subdev *mtk_subdev,
 	schedule_work(&mtk_subdev->register_work);
 	return 0;
 }
+EXPORT_SYMBOL_GPL(mtk_rpmsg_create_device);
 
 static int mtk_rpmsg_ns_cb(struct rpmsg_device *rpdev, void *data, int len,
 			   void *priv, u32 src)
