@@ -29,6 +29,12 @@
 		i2c9 = &i2c9;
 	};
 
+	/* chosen */
+	chosen: chosen {
+		bootargs = "console=tty0 console=ttyS0,921600n1 root=/dev/mmcblk0p43 rootwait earlycon=mtk8250,mmio32,0x11002000 earlyprintk=ttyS0,921600n8 ";
+		kaslr-seed = <0 0>;
+	};
+
 	clk26m: oscillator0 {
 		compatible = "fixed-clock";
 		#clock-cells = <0>;
