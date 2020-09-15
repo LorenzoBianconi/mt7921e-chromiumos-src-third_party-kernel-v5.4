@@ -151,7 +151,7 @@
 		enable-active-high;
 		regulator-always-on;
 
-		gpio = <&pio 30 GPIO_ACTIVE_HIGH>;
+		gpio = <&pio 19 GPIO_ACTIVE_HIGH>;
 	};
 
 	pp1800_mipibrdg: pp1800-mipibrdg {
@@ -929,7 +929,7 @@
 
 	pp1000_dpbrdg_en: pp1000-dpbrdg-en {
 		pins1 {
-			pinmux = <PINMUX_GPIO30__FUNC_GPIO30>;
+			pinmux = <PINMUX_GPIO19__FUNC_GPIO19>;
 			output-low;
 		};
 	};
@@ -989,7 +989,7 @@
 			output-low;
 		};
 		pins2 {
-			pinmux = <PINMUX_GPIO0__FUNC_GPIO0>;
+			pinmux = <PINMUX_GPIO7__FUNC_GPIO7>;
 			input-enable;
 			bias-pull-up;
 		};
@@ -1245,7 +1245,7 @@
 		reset-gpios = <&pio 9 GPIO_ACTIVE_HIGH>;
 		anx,mipi-dpi-in = <1>;
 		interrupt-parent = <&pio>;
-		interrupts = <0 IRQ_TYPE_LEVEL_LOW>;
+		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
 		vdd10-supply = <&pp1000_dpbrdg>;
 		vdd18-supply = <&pp1800_dpbrdg>;
 		vdd33-supply = <&pp3300_dpbrdg>;

@@ -12,6 +12,17 @@
 
 /* M.2 connector changes */
 
+&anx7625_dp_pins {
+	pins2 {
+		pinmux = <PINMUX_GPIO0__FUNC_GPIO0>;
+	};
+	/* Note: We don't seem to do anything with that pin? */
+	hpd: hpd {
+		pinmux = <PINMUX_GPIO16__FUNC_GPIO16>;
+		bias-disable;
+	};
+};
+
 &bluetooth {
 	enable-gpios = <&pio 131 GPIO_ACTIVE_HIGH>;
 };
@@ -19,6 +30,16 @@
 &bt_kill {
 	pinmux = <PINMUX_GPIO131__FUNC_GPIO131>; /* BT_KILL_L */
 	output-low;
+};
+
+&pp1000_dpbrdg_en {
+	pins1 {
+			pinmux = <PINMUX_GPIO30__FUNC_GPIO30>;
+		};
+};
+
+&pp1000_dpbrdg {
+	gpio = <&pio 30 GPIO_ACTIVE_HIGH>;
 };
 
 &pcie_en_pp3300_wlan {
