@@ -463,12 +463,14 @@
 	pcie_pinmux: pcie_pinmux {
 		pcie_wake {
 			pinmux = <PINMUX_GPIO63__FUNC_PCIE_WAKE_N>;
+			bias-pull-up;
 		};
 		pcie_pereset {
 			pinmux = <PINMUX_GPIO64__FUNC_PCIE_PERESET_N>;
 		};
 		pcie_clkreq {
 			pinmux = <PINMUX_GPIO65__FUNC_PCIE_CLKREQ_N>;
+			bias-pull-up;
 		};
 		pcie_en_pp3300_wlan {
 			/* TODO: Model as a regulator */
