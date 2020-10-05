@@ -146,8 +146,18 @@
 
 #define  I2C_ADDR_7E_FLASH_CONTROLLER  0x7E
 
-#define FLASH_LOAD_STA 0x05
+#define FLASH_SRAM_SEL          0x00
+#define SRAM_ADDR_HIGH          0x01
+#define SRAM_ADDR_LOW           0x02
+#define SRAM_LEN_HIGH           0x03
+#define SRAM_LEN_LOW            0x04
+#define FLASH_LOAD_STA          0x05
 #define FLASH_LOAD_STA_CHK	BIT(7)
+
+#define FLASH_ADDR_LOW          0x0F
+#define FLASH_ADDR_HIGH         0x10
+#define FLASH_LEN_HIGH          0x31
+#define FLASH_LEN_LOW           0x32
 
 #define  XTAL_FRQ_SEL    0x3F
 /* bit field positions */
@@ -352,6 +362,7 @@ struct anx7625_platform_data {
 	struct gpio_desc *gpio_reset;
 	struct drm_bridge *panel_bridge;
 	int intp_irq;
+	int is_dpi;
 	u32 low_power_mode;
 	struct device_node *mipi_host_node;
 };
@@ -371,6 +382,8 @@ struct anx7625_data {
 	atomic_t power_status;
 	int hpd_status;
 	int hpd_high_cnt;
+	int hdcp_support;
+	int hdcp_en;
 	/* Lock for work queue */
 	struct mutex lock;
 	struct i2c_client *client;
