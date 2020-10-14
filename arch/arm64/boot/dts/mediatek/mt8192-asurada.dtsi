@@ -1386,3 +1386,12 @@
 &afe {
 	i2s9-share = "I2S8";
 };
+
+&scp {
+	status = "okay";
+
+	cros_ec {
+		compatible = "google,cros-ec-rpmsg";
+		mtk,rpmsg-name = "cros-ec-rpmsg";
+	};
+};
