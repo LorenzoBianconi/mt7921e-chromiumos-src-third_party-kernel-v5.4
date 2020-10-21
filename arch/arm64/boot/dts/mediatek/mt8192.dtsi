@@ -897,9 +897,9 @@
 				interrupts = <GIC_SPI 202 IRQ_TYPE_LEVEL_HIGH 0>;
 				resets = <&watchdog 17>;
 				reset-names = "audiosys";
-				apmixedsys = <&apmixedsys>;
-				infracfg = <&infracfg>;
-				topckgen = <&topckgen>;
+				mediatek,apmixedsys = <&apmixedsys>;
+				mediatek,infracfg = <&infracfg>;
+				mediatek,topckgen = <&topckgen>;
 				power-domains = <&spm MT8192_POWER_DOMAIN_AUDIO>;
 				clocks = <&audsys CLK_AUD_AFE>,
 					 <&audsys CLK_AUD_DAC>,
