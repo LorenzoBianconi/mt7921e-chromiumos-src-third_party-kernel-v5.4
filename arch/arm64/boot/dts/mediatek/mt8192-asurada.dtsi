@@ -267,25 +267,11 @@
 	regulator-always-on;
 };
 
-/* for APU */
-&mt6359_vproc1_buck_reg {
-	regulator-always-on;
-};
-
-/* for EMMC */
-&mt6359_vufs_ldo_reg {
-	regulator-always-on;
-};
-
-&mt6359_vemc_1_ldo_reg {
-	regulator-always-on;
-};
-
-&mt6359_vaud18_ldo_reg {
-	regulator-always-on;
-};
-
 &mt6359_vrf12_ldo_reg {
+	regulator-always-on;
+};
+
+&mt6359_vufs_ldo_reg {
 	regulator-always-on;
 };
 
