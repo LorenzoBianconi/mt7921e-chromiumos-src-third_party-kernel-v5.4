@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/usb/typec-mode-switch.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Typec Mode Switch Bindings
+
+maintainers:
+  - Pi-Hsun Shih <pihsun@chromium.org>
+
+description: |-
+  TODO
+
+properties:
+  compatible:
+    const: typec-mode-switch
+
+  port:
+    type: object
+    additionalProperties: false
+    description: -|
+      Connection to the remote endpoint using OF graph bindings that model SS
+      data bus to typec connector.
+
+    properties:
+      endpoint:
+        type: object
+        additionalProperties: false
+
+        properties:
+          remote-endpoint: true
+
+        required:
+          - remote-endpoint
+
+    required:
+      - endpoint
+
+required:
+  - compatible
+  - port
+
+additionalProperties: false
+
+examples:
+  - |
+    usbc_switch {
+        compatible = "typec-mode-switch";
+
+        port {
+                usb3_data_ss: endpoint {
+                        remote-endpoint = <&typec_con_ss>;
+                };
+        };
+    };

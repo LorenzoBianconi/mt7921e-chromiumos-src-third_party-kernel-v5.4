@@ -34,6 +34,13 @@ properties:
     description: used for reset chip control, RESET_N pin B7.
     maxItems: 1
 
+  anx,tx-rx-to-two-ports:
+    description: |
+      TODO(pihsun) Complete the description
+      If set, output lane selection is based on two typec port status, and
+      there should be two child nodes with "typec-mode-switch" compatible.
+    type: boolean
+
   ports:
     type: object
 
