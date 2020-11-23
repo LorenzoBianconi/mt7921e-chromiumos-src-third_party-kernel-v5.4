@@ -241,6 +241,10 @@
 	};
 };
 
+&mfg0 {
+	mfg-supply = <&mt6315_7_vbuck1>;
+};
+
 /* for Audio */
 &mt6359codec {
 	mediatek,dmic-mode = <1>; /* one-wire */
