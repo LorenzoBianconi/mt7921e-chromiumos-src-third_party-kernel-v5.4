@@ -1489,6 +1489,9 @@ static int anx7625_usb_mux_set(struct typec_mux *mux,
 			       struct typec_mux_state *state)
 {
 	struct anx7625_port_data *data = typec_mux_get_drvdata(mux);
+	struct anx7625_data *ctx = data->ctx;
+	bool prev_has_dp = data->has_dp;
+
 
 	if (state->alt && state->alt->svid == USB_TYPEC_DP_SID &&
 	    state->alt->mode == USB_TYPEC_DP_MODE)
@@ -1496,7 +1499,19 @@ static int anx7625_usb_mux_set(struct typec_mux *mux,
 	else
 		data->has_dp = false;
 
-	anx7625_usb_two_ports_update(data->ctx);
+	// dp on, power on first
+	if (!atomic_read(&ctx->power_status) && data->has_dp)
+		anx7625_chip_control(ctx, data->has_dp);
+
+	anx7625_usb_two_ports_update(ctx);
+
+	if (prev_has_dp != data->has_dp && ctx->bridge_attached)
+		drm_helper_hpd_irq_event(ctx->bridge.dev);
+
+	// dp off, power off last
+	if (atomic_read(&ctx->power_status) && !data->has_dp)
+		anx7625_chip_control(ctx, data->has_dp);
+
 	return 0;
 }
 
@@ -2126,13 +2141,6 @@ static int anx7625_i2c_probe(struct i2c_client *client,
 		ret = -ENOMEM;
 		DRM_DEV_ERROR(dev, "fail to reserve I2C bus.\n");
 		goto free_wq;
-	}
-
-	/* hook for low power mode inconsistence */
-	if (platform->pdata.is_dpi && platform->pdata.low_power_mode) {
-		anx7625_power_on_init(platform);
-		DRM_DEV_ERROR(dev, "power on anx7625 at none low power mode.\n");
-		platform->pdata.low_power_mode = 0;
 	}
 
 	if (platform->pdata.low_power_mode == 0) {
