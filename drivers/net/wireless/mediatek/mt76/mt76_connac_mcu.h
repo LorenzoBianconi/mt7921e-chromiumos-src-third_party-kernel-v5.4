@@ -210,7 +210,7 @@ struct wtbl_hdr_trans {
 	__le16 len;
 	u8 to_ds;
 	u8 from_ds;
-	u8 disable_rx_trans;
+	u8 no_rx_trans;
 	u8 rsv;
 } __packed;
 
