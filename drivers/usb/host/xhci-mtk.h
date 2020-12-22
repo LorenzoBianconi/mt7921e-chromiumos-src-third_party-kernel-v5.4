@@ -21,12 +21,18 @@
 
 /**
  * @split_bit_map: used to avoid split microframes overlay
+ * @ss_bit_map: used to avoid start split microframes overlay
+ * @cs_bit_map: used to avoid complete split microframes overlay
+ * @fs_bus_bw: array to keep track of bandwidth already used at full speed
  * @ep_list: Endpoints using this TT
  * @usb_tt: usb TT related
  * @tt_port: TT port number
  */
 struct mu3h_sch_tt {
 	DECLARE_BITMAP(split_bit_map, XHCI_MTK_MAX_ESIT);
+	DECLARE_BITMAP(ss_bit_map, XHCI_MTK_MAX_ESIT);
+	DECLARE_BITMAP(cs_bit_map, XHCI_MTK_MAX_ESIT + 1);
+	u32 fs_bus_bw[XHCI_MTK_MAX_ESIT];
 	struct list_head ep_list;
 	struct usb_tt *usb_tt;
 	int tt_port;
@@ -42,7 +48,7 @@ struct mu3h_sch_tt {
  * two bandwidth domains, one for IN eps and another for OUT eps.
  */
 struct mu3h_sch_bw_info {
-	u32 bus_bw[XHCI_MTK_MAX_ESIT];
+	u32 bus_bw[XHCI_MTK_MAX_ESIT + 1];
 	struct list_head bw_ep_list;
 };
 

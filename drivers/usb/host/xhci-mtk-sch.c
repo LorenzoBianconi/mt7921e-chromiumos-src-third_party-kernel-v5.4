@@ -383,7 +383,9 @@ static int check_sch_tt(struct usb_device *udev,
 	u32 fs_budget_start;
 	u32 start_ss, last_ss;
 	u32 start_cs, last_cs;
-	int i;
+	u32 num_esit, base;
+	int i, j;
+	u32 tmp;
 
 	start_ss = offset % 8;
 	fs_budget_start = (start_ss + 1) % 8;
@@ -398,10 +400,13 @@ static int check_sch_tt(struct usb_device *udev,
 		if (!(start_ss == 7 || last_ss < 6))
 			return -ERANGE;
 
-		for (i = 0; i < sch_ep->cs_count; i++)
-			if (test_bit(offset + i, tt->split_bit_map))
+		for (i = 0; i < sch_ep->cs_count; i++) {
+			if (test_bit(offset + i, tt->ss_bit_map))
 				return -ERANGE;
 
+			if (test_bit(offset + i, tt->cs_bit_map))
+				return -ERANGE;
+		}
 	} else {
 		u32 cs_count = DIV_ROUND_UP(sch_ep->maxpkt, FS_PAYLOAD_MAX);
 
@@ -428,8 +433,10 @@ static int check_sch_tt(struct usb_device *udev,
 		if (cs_count > 7)
 			cs_count = 7; /* HW limit */
 
-		for (i = 0; i < cs_count + 2; i++) {
-			if (test_bit(offset + i, tt->split_bit_map))
+		if (test_bit(offset, tt->ss_bit_map))
+			return -ERANGE;
+		for (i = 0; i < cs_count; i++) {
+			if (test_bit(offset + 2 + i, tt->cs_bit_map))
 				return -ERANGE;
 		}
 
@@ -445,11 +452,22 @@ static int check_sch_tt(struct usb_device *udev,
 			sch_ep->num_budget_microframes = sch_ep->esit;
 	}
 
+	num_esit = XHCI_MTK_MAX_ESIT / sch_ep->esit;
+	for (i = 0; i < num_esit; i++) {
+		base = sch_ep->offset + i * sch_ep->esit;
+		for (j = 0; j < sch_ep->num_budget_microframes; j++) {
+			tmp = tt->fs_bus_bw[base + j]
+			      + sch_ep->bw_cost_per_microframe;
+			if (tmp > FS_PAYLOAD_MAX)
+				return -ERANGE;
+		}
+	}
+
 	return 0;
 }
 
 static void update_sch_tt(struct usb_device *udev,
-	struct mu3h_sch_ep_info *sch_ep)
+	struct mu3h_sch_ep_info *sch_ep, bool used)
 {
 	struct mu3h_sch_tt *tt = sch_ep->sch_tt;
 	u32 base, num_esit;
@@ -458,11 +476,52 @@ static void update_sch_tt(struct usb_device *udev,
 	num_esit = XHCI_MTK_MAX_ESIT / sch_ep->esit;
 	for (i = 0; i < num_esit; i++) {
 		base = sch_ep->offset + i * sch_ep->esit;
-		for (j = 0; j < sch_ep->num_budget_microframes; j++)
-			set_bit(base + j, tt->split_bit_map);
+		for (j = 0; j < sch_ep->num_budget_microframes; j++) {
+			if (used)
+				set_bit(base + j, tt->split_bit_map);
+			else
+				clear_bit(base + j, tt->split_bit_map);
+		}
+
+		if (sch_ep->ep_type == ISOC_OUT_EP) {
+			for (j = 0; j < sch_ep->num_budget_microframes; j++) {
+				if (used) {
+					set_bit(base + j, tt->ss_bit_map);
+					set_bit(base + j, tt->cs_bit_map);
+					tt->fs_bus_bw[base + j] +=
+						sch_ep->bw_cost_per_microframe;
+				} else {
+					clear_bit(base + j, tt->ss_bit_map);
+					clear_bit(base + j, tt->cs_bit_map);
+					tt->fs_bus_bw[base + j] -=
+						sch_ep->bw_cost_per_microframe;
+				}
+			}
+		} else {
+			if (used)
+				set_bit(base, tt->ss_bit_map);
+			else
+				clear_bit(base, tt->ss_bit_map);
+
+			for (j = 0; j < sch_ep->cs_count; j++) {
+				if (used) {
+					set_bit(base + 2 + j, tt->cs_bit_map);
+
+					tt->fs_bus_bw[base + 2 + j] +=
+						sch_ep->bw_cost_per_microframe;
+				} else {
+					clear_bit(base + 2 + j, tt->cs_bit_map);
+					tt->fs_bus_bw[base + 2 + j] -=
+						sch_ep->bw_cost_per_microframe;
+				}
+			}
+		}
 	}
 
-	list_add_tail(&sch_ep->tt_endpoint, &tt->ep_list);
+	if (used)
+		list_add_tail(&sch_ep->tt_endpoint, &tt->ep_list);
+	else
+		list_del(&sch_ep->tt_endpoint);
 }
 
 static int check_sch_bw(struct usb_device *udev,
@@ -470,6 +529,7 @@ static int check_sch_bw(struct usb_device *udev,
 {
 	u32 offset;
 	u32 esit;
+	u32 boundary;
 	u32 min_bw;
 	u32 min_index;
 	u32 worst_bw;
@@ -487,10 +547,13 @@ static int check_sch_bw(struct usb_device *udev,
 	 */
 	min_bw = ~0;
 	min_index = 0;
+	boundary = esit;
 	min_cs_count = sch_ep->cs_count;
 	min_num_budget = sch_ep->num_budget_microframes;
 	for (offset = 0; offset < esit; offset++) {
 		if (is_fs_or_ls(udev->speed)) {
+			if (sch_ep->ep_type != ISOC_OUT_EP)
+				boundary = esit + 1;
 			ret = check_sch_tt(udev, sch_ep, offset);
 			if (ret)
 				continue;
@@ -498,7 +561,7 @@ static int check_sch_bw(struct usb_device *udev,
 				tt_offset_ok = true;
 		}
 
-		if ((offset + sch_ep->num_budget_microframes) > sch_ep->esit)
+		if ((offset + sch_ep->num_budget_microframes) > boundary)
 			break;
 
 		worst_bw = get_max_bw(sch_bw, sch_ep, offset);
@@ -532,7 +595,7 @@ static int check_sch_bw(struct usb_device *udev,
 		if (!tt_offset_ok)
 			return -ERANGE;
 
-		update_sch_tt(udev, sch_ep);
+		update_sch_tt(udev, sch_ep, 1);
 	}
 
 	/* update bus bandwidth info */
@@ -696,12 +759,12 @@ void xhci_mtk_drop_ep_quirk(struct usb_hcd *hcd, struct usb_device *udev,
 
 	list_for_each_entry(sch_ep, &sch_bw->bw_ep_list, endpoint) {
 		if (sch_ep->ep == ep) {
-			update_bus_bw(sch_bw, sch_ep, 0);
-			list_del(&sch_ep->endpoint);
 			if (is_fs_or_ls(udev->speed)) {
-				list_del(&sch_ep->tt_endpoint);
+				update_sch_tt(udev, sch_ep, 0);
 				drop_tt(udev);
 			}
+			update_bus_bw(sch_bw, sch_ep, 0);
+			list_del(&sch_ep->endpoint);
 			kfree(sch_ep);
 			break;
 		}
