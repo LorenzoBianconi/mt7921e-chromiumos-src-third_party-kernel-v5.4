@@ -163,8 +163,10 @@ int of_dma_configure_id(struct device *dev, struct device_node *np,
 	dev->coherent_dma_mask &= mask;
 	*dev->dma_mask &= mask;
 	/* ...but only set bus limit if we found valid dma-ranges earlier */
-	if (!ret)
+	if (!ret) {
 		dev->bus_dma_limit = end;
+		dev->dma_range_map = map;
+	}
 
 	coherent = of_dma_is_coherent(np);
 	dev_dbg(dev, "device is%sdma coherent\n",
@@ -172,6 +174,8 @@ int of_dma_configure_id(struct device *dev, struct device_node *np,
 
 	iommu = of_iommu_configure(dev, np, id);
 	if (PTR_ERR(iommu) == -EPROBE_DEFER) {
+		if (!ret)
+			dev->dma_range_map = NULL;
 		kfree(map);
 		return -EPROBE_DEFER;
 	}
@@ -180,8 +184,6 @@ int of_dma_configure_id(struct device *dev, struct device_node *np,
 		iommu ? " " : " not ");
 
 	arch_setup_dma_ops(dev, dma_start, size, iommu, coherent);
-
-	dev->dma_range_map = map;
 
 	if (!iommu)
 		return of_dma_set_restricted_buffer(dev);
