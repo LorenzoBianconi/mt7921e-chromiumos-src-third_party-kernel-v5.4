@@ -81,6 +81,7 @@ struct scpsys_bus_prot_data {
  * @caps: The flag for active wake-up action.
  * @bp_infracfg: bus protection for infracfg subsystem
  * @bp_smi: bus protection for smi subsystem
+ * @name: specific power domain name for regulator lookup and debugfs
  */
 struct scpsys_domain_data {
 	u32 sta_mask;
@@ -90,6 +91,7 @@ struct scpsys_domain_data {
 	u8 caps;
 	const struct scpsys_bus_prot_data bp_infracfg[SPM_MAX_BUS_PROT_DATA];
 	const struct scpsys_bus_prot_data bp_smi[SPM_MAX_BUS_PROT_DATA];
+	char *name;
 };
 
 struct scpsys_soc_data {

@@ -13,6 +13,7 @@
 #include <linux/platform_device.h>
 #include <linux/pm_domain.h>
 #include <linux/regmap.h>
+#include <linux/regulator/consumer.h>
 #include <linux/soc/mediatek/infracfg.h>
 
 #include "mt8173-pm-domains.h"
@@ -40,6 +41,7 @@ struct scpsys_domain {
 	struct clk_bulk_data *subsys_clks;
 	struct regmap *infracfg;
 	struct regmap *smi;
+	struct regulator *supply;
 };
 
 struct scpsys {
@@ -187,6 +189,22 @@ static int scpsys_bus_protect_disable(struct scpsys_domain *pd)
 	return _scpsys_bus_protect_disable(pd->data->bp_infracfg, pd->infracfg);
 }
 
+static int scpsys_regulator_enable(struct scpsys_domain *pd)
+{
+	if (!pd->supply)
+		return 0;
+
+	return regulator_enable(pd->supply);
+}
+
+static int scpsys_regulator_disable(struct scpsys_domain *pd)
+{
+	if (!pd->supply)
+		return 0;
+
+	return regulator_disable(pd->supply);
+}
+
 static int scpsys_power_on(struct generic_pm_domain *genpd)
 {
 	struct scpsys_domain *pd = container_of(genpd, struct scpsys_domain, genpd);
@@ -194,9 +212,13 @@ static int scpsys_power_on(struct generic_pm_domain *genpd)
 	bool tmp;
 	int ret;
 
+	ret = scpsys_regulator_enable(pd);
+	if (ret < 0)
+		return ret;
+
 	ret = clk_bulk_enable(pd->num_clks, pd->clks);
 	if (ret)
-		return ret;
+		goto err_disable_regulator;
 
 	/* subsys power on */
 	regmap_set_bits(scpsys->base, pd->data->ctl_offs, PWR_ON_BIT);
@@ -232,6 +254,8 @@ err_disable_subsys_clks:
 	clk_bulk_disable(pd->num_subsys_clks, pd->subsys_clks);
 err_pwr_ack:
 	clk_bulk_disable(pd->num_clks, pd->clks);
+err_disable_regulator:
+	scpsys_regulator_disable(pd);
 	return ret;
 }
 
@@ -266,6 +290,10 @@ static int scpsys_power_off(struct generic_pm_domain *genpd)
 		return ret;
 
 	clk_bulk_disable(pd->num_clks, pd->clks);
+
+	ret = scpsys_regulator_disable(pd);
+	if (ret < 0)
+		return ret;
 
 	return 0;
 }
@@ -314,6 +342,16 @@ generic_pm_domain *scpsys_add_one_domain(struct scpsys *scpsys, struct device_no
 	pd->smi = syscon_regmap_lookup_by_phandle_optional(node, "mediatek,smi");
 	if (IS_ERR(pd->smi))
 		return ERR_CAST(pd->smi);
+
+	if (pd->data->name) {
+		pd->supply = devm_regulator_get_optional(scpsys->dev, pd->data->name);
+		if (IS_ERR(pd->supply)) {
+			if (PTR_ERR(pd->supply) == -ENODEV)
+				pd->supply = NULL;
+			else
+				return ERR_CAST(pd->supply);
+		}
+	}
 
 	num_clks = of_clk_get_parent_count(node);
 	if (num_clks > 0) {
@@ -397,7 +435,7 @@ generic_pm_domain *scpsys_add_one_domain(struct scpsys *scpsys, struct device_no
 		goto err_unprepare_subsys_clocks;
 	}
 
-	pd->genpd.name = node->name;
+	pd->genpd.name = pd->data->name ?: node->name;
 	pd->genpd.power_off = scpsys_power_off;
 	pd->genpd.power_on = scpsys_power_on;
 
