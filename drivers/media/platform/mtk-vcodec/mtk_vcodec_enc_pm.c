@@ -65,9 +65,6 @@ int mtk_vcodec_init_enc_pm(struct mtk_vcodec_dev *mtkdev)
 	return 0;
 
 put_larbvenclt:
-	put_device(pm->larbvenclt);
-put_larbvenc:
-	put_device(pm->larbvenc);
 	return ret;
 }
 
