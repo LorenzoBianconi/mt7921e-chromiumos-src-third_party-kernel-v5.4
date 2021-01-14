@@ -17,6 +17,7 @@
 #ifndef NULLS_MARKER
 #define NULLS_MARKER(value) (1UL | (((long)value) << 1))
 #endif
+#include <hdrs/linux/rhashtable-types.h>
 #include "linux/rhashtable.h"
 
 #include <linux/errno.h>
@@ -35,7 +36,6 @@
 #include <linux/hrtimer.h>
 #include <crypto/algapi.h>
 #include <linux/pci.h>
-#include <linux/pci-aspm.h>
 #include <linux/if_vlan.h>
 #include <linux/overflow.h>
 #include <linux/mmc/sdio_func.h>
