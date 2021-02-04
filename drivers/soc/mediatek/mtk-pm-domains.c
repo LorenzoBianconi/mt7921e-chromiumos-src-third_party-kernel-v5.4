@@ -13,7 +13,6 @@
 #include <linux/platform_device.h>
 #include <linux/pm_domain.h>
 #include <linux/regmap.h>
-#include <linux/regulator/consumer.h>
 #include <linux/soc/mediatek/infracfg.h>
 
 #include "mt8173-pm-domains.h"
@@ -41,7 +40,6 @@ struct scpsys_domain {
 	struct clk_bulk_data *subsys_clks;
 	struct regmap *infracfg;
 	struct regmap *smi;
-	struct regulator *supply;
 };
 
 struct scpsys {
@@ -189,16 +187,6 @@ static int scpsys_bus_protect_disable(struct scpsys_domain *pd)
 	return _scpsys_bus_protect_disable(pd->data->bp_infracfg, pd->infracfg);
 }
 
-static int scpsys_regulator_enable(struct regulator *supply)
-{
-	return supply ? regulator_enable(supply) : 0;
-}
-
-static int scpsys_regulator_disable(struct regulator *supply)
-{
-	return supply ? regulator_disable(supply) : 0;
-}
-
 static int scpsys_power_on(struct generic_pm_domain *genpd)
 {
 	struct scpsys_domain *pd = container_of(genpd, struct scpsys_domain, genpd);
@@ -206,13 +194,9 @@ static int scpsys_power_on(struct generic_pm_domain *genpd)
 	bool tmp;
 	int ret;
 
-	ret = scpsys_regulator_enable(pd->supply);
-	if (ret)
-		return ret;
-
 	ret = clk_bulk_enable(pd->num_clks, pd->clks);
 	if (ret)
-		goto err_reg;
+		return ret;
 
 	/* subsys power on */
 	regmap_set_bits(scpsys->base, pd->data->ctl_offs, PWR_ON_BIT);
@@ -248,8 +232,6 @@ err_disable_subsys_clks:
 	clk_bulk_disable(pd->num_subsys_clks, pd->subsys_clks);
 err_pwr_ack:
 	clk_bulk_disable(pd->num_clks, pd->clks);
-err_reg:
-	scpsys_regulator_disable(pd->supply);
 	return ret;
 }
 
@@ -285,8 +267,6 @@ static int scpsys_power_off(struct generic_pm_domain *genpd)
 
 	clk_bulk_disable(pd->num_clks, pd->clks);
 
-	scpsys_regulator_disable(pd->supply);
-
 	return 0;
 }
 
@@ -295,7 +275,6 @@ generic_pm_domain *scpsys_add_one_domain(struct scpsys *scpsys, struct device_no
 {
 	const struct scpsys_domain_data *domain_data;
 	struct scpsys_domain *pd;
-	struct device_node *root_node = scpsys->dev->of_node;
 	struct property *prop;
 	const char *clk_name;
 	int i, ret, num_clks;
@@ -327,25 +306,6 @@ generic_pm_domain *scpsys_add_one_domain(struct scpsys *scpsys, struct device_no
 
 	pd->data = domain_data;
 	pd->scpsys = scpsys;
-
-	if (MTK_SCPD_CAPS(pd, MTK_SCPD_DOMAIN_SUPPLY)) {
-		/*
-		 * Find regulator in current power domain node.
-		 * devm_regulator_get() finds regulator in a node and its child
-		 * node, so set of_node to current power domain node then change
-		 * back to original node after regulator is found for current
-		 * power domain node.
-		 */
-		scpsys->dev->of_node = node;
-		pd->supply = devm_regulator_get(scpsys->dev, "domain");
-		scpsys->dev->of_node = root_node;
-		if (IS_ERR(pd->supply)) {
-			dev_err_probe(scpsys->dev, PTR_ERR(pd->supply),
-				      "%pOF: failed to get power supply.\n",
-				      node);
-			return ERR_CAST(pd->supply);
-		}
-	}
 
 	pd->infracfg = syscon_regmap_lookup_by_phandle_optional(node, "mediatek,infracfg");
 	if (IS_ERR(pd->infracfg))
