@@ -1397,7 +1397,7 @@ void mt7921_mac_work(struct work_struct *work)
 	if (++phy->sta_work_count == 4) {
 		phy->sta_work_count = 0;
 		mt7921_mac_sta_stats_work(phy);
-	};
+	}
 
 	mt7921_mutex_release(phy->dev);
 	ieee80211_queue_delayed_work(phy->mt76->hw, &mphy->mac_work,
