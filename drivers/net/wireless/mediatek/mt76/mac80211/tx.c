@@ -3643,7 +3643,8 @@ begin:
 encap_out:
 	IEEE80211_SKB_CB(skb)->control.vif = vif;
 
-	if (wiphy_ext_feature_isset(local->hw.wiphy, NL80211_EXT_FEATURE_AQL)) {
+	if (vif &&
+	    wiphy_ext_feature_isset(local->hw.wiphy, NL80211_EXT_FEATURE_AQL)) {
 		bool ampdu = txq->ac != IEEE80211_AC_VO;
 		u32 airtime;
 
