@@ -1109,7 +1109,7 @@ bool cfg80211_iftype_allowed(struct wiphy *wiphy, enum nl80211_iftype iftype,
 
 #endif /* CFG80211_VERSION < KERNEL_VERSION(5,3,0) */
 
-#if CFG80211_VERSION < KERNEL_VERSION(5,5,0)
+#if CFG80211_VERSION < KERNEL_VERSION(5,4,0)
 #define NL80211_EXT_FEATURE_AQL -1
 #endif
 
