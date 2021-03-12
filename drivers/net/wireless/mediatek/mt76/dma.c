@@ -627,6 +627,7 @@ mt76_dma_init(struct mt76_dev *dev)
 	int i;
 
 	init_dummy_netdev(&dev->napi_dev);
+	dev->napi_dev.threaded = 1;
 
 	mt76_for_each_q_rx(dev, i) {
 		netif_napi_add(&dev->napi_dev, &dev->napi[i], mt76_dma_rx_poll,
