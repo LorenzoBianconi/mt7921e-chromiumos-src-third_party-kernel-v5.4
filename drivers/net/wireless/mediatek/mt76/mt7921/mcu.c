@@ -1278,7 +1278,9 @@ int mt7921_mcu_drv_pmctrl(struct mt7921_dev *dev)
 	struct mt76_phy *mphy = &dev->mt76.phy;
 	int i, err = 0;
 
-	if (!test_and_clear_bit(MT76_STATE_PM, &mphy->state))
+	mutex_lock(&dev->pm.mutex);
+
+	if (!test_bit(MT76_STATE_PM, &mphy->state))
 		goto out;
 
 	for (i = 0; i < MT7921_DRV_OWN_RETRY_COUNT; i++) {
@@ -1309,9 +1311,12 @@ int mt7921_mcu_drv_pmctrl(struct mt7921_dev *dev)
 		mt76_wr(dev, MT_PCIE_MAC_INT_ENABLE, 0xff);
 		dev->pm.lp_wake++;
 	}
+	clear_bit(MT76_STATE_PM, &mphy->state);
 
 out:
 	dev->pm.last_activity = jiffies;
+	mutex_unlock(&dev->pm.mutex);
+
 	if (err)
 		mt7921_reset(&dev->mt76);
 
@@ -1321,10 +1326,12 @@ out:
 int mt7921_mcu_fw_pmctrl(struct mt7921_dev *dev)
 {
 	struct mt76_phy *mphy = &dev->mt76.phy;
-	int i;
+	int i, err = 0;
+
+	mutex_lock(&dev->pm.mutex);
 
 	if (test_and_set_bit(MT76_STATE_PM, &mphy->state))
-		return 0;
+		goto out;
 
 	for (i = 0; i < MT7921_DRV_OWN_RETRY_COUNT; i++) {
 		mt76_wr(dev, MT_CONN_ON_LPCTL, PCIE_LPCR_HOST_SET_OWN);
@@ -1335,11 +1342,16 @@ int mt7921_mcu_fw_pmctrl(struct mt7921_dev *dev)
 
 	if (i == MT7921_DRV_OWN_RETRY_COUNT) {
 		dev_err(dev->mt76.dev, "firmware own failed\n");
-		mt7921_reset(&dev->mt76);
-		return -EIO;
+		clear_bit(MT76_STATE_PM, &mphy->state);
+		err = -EIO;
 	}
+out:
+	mutex_unlock(&dev->pm.mutex);
 
-	return 0;
+	if (err)
+		mt7921_reset(&dev->mt76);
+
+	return err;
 }
 
 void
