@@ -1314,7 +1314,6 @@ int mt7921_mcu_drv_pmctrl(struct mt7921_dev *dev)
 	clear_bit(MT76_STATE_PM, &mphy->state);
 
 out:
-	dev->pm.last_activity = jiffies;
 	mutex_unlock(&dev->pm.mutex);
 
 	if (err)
