@@ -244,13 +244,15 @@ int mt7921_register_device(struct mt7921_dev *dev)
 	timer_setup(&dev->phy.roc.timer, mt7921_roc_timer, 0);
 	init_waitqueue_head(&dev->phy.roc.wait);
 
+	dev->pm.idle_timeout = MT7921_PM_TIMEOUT;
+	dev->pm.stats.last_wake_event = jiffies;
+	dev->pm.stats.last_doze_event = jiffies;
+
 	ret = mt7921_init_hardware(dev);
 	if (ret)
 		return ret;
 
 	mt7921_init_wiphy(hw);
-	dev->pm.idle_timeout = MT7921_PM_TIMEOUT;
-	dev->pm.enable = true;
 	dev->mphy.sband_2g.sband.ht_cap.cap |=
 			IEEE80211_HT_CAP_LDPC_CODING |
 			IEEE80211_HT_CAP_MAX_AMSDU;
