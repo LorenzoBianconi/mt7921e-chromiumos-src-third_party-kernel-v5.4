@@ -1870,7 +1870,9 @@ void mt7615_pm_wake_work(struct work_struct *work)
 		mt76_for_each_q_rx(&dev->mt76, i)
 			napi_schedule(&dev->mt76.napi[i]);
 		mt76_connac_pm_dequeue_skbs(mphy, &dev->pm);
-		napi_schedule(&dev->mt76.tx_napi);
+		mt76_queue_tx_cleanup(dev, dev->mt76.q_mcu[MT_MCUQ_WM], false);
+		ieee80211_queue_delayed_work(mphy->hw, &mphy->mac_work,
+					     MT7615_WATCHDOG_TIME);
 	} else {
 		dev_err(mphy->dev->dev, "failed to wake device\n");
 	}
