@@ -1421,9 +1421,9 @@ mt7615_mac_tx_free_token(struct mt7615_dev *dev, u16 token)
 
 	trace_mac_tx_free(dev, token);
 
-	spin_lock_bh(&dev->token_lock);
-	txwi = idr_remove(&dev->token, token);
-	spin_unlock_bh(&dev->token_lock);
+	spin_lock_bh(&mdev->token_lock);
+	txwi = idr_remove(&mdev->token, token);
+	spin_unlock_bh(&mdev->token_lock);
 
 	if (!txwi)
 		return;
@@ -2004,15 +2004,15 @@ void mt7615_tx_token_put(struct mt7615_dev *dev)
 	struct mt76_txwi_cache *txwi;
 	int id;
 
-	spin_lock_bh(&dev->token_lock);
-	idr_for_each_entry(&dev->token, txwi, id) {
+	spin_lock_bh(&dev->mt76.token_lock);
+	idr_for_each_entry(&dev->mt76.token, txwi, id) {
 		mt7615_txp_skb_unmap(&dev->mt76, txwi);
 		if (txwi->skb)
 			dev_kfree_skb_any(txwi->skb);
 		mt76_put_txwi(&dev->mt76, txwi);
 	}
-	spin_unlock_bh(&dev->token_lock);
-	idr_destroy(&dev->token);
+	spin_unlock_bh(&dev->mt76.token_lock);
+	idr_destroy(&dev->mt76.token);
 }
 EXPORT_SYMBOL_GPL(mt7615_tx_token_put);
 
@@ -2060,7 +2060,7 @@ void mt7615_mac_reset_work(struct work_struct *work)
 	mt76_wr(dev, MT_MCU_INT_EVENT, MT_MCU_INT_EVENT_PDMA_STOPPED);
 
 	mt7615_tx_token_put(dev);
-	idr_init(&dev->token);
+	idr_init(&dev->mt76.token);
 
 	if (mt7615_wait_reset_state(dev, MT_MCU_CMD_RESET_DONE)) {
 		mt7615_dma_reset(dev);

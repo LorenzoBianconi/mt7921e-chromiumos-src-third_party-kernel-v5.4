@@ -191,10 +191,6 @@ struct mt7915_dev {
 
 	u32 hw_pattern;
 
-	spinlock_t token_lock;
-	int token_count;
-	struct idr token;
-
 	s8 **rate_power; /* TODO: use mt76_rate_power */
 
 	bool dbdc_support;
