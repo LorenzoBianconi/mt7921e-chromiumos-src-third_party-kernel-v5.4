@@ -269,7 +269,7 @@ static int mt7921_pci_resume(struct pci_dev *pdev)
 
 	err = mt7921_mcu_drv_pmctrl(dev);
 	if (err < 0)
-		return 0;
+		return err;
 
 	mt7921_wpdma_reinit_cond(dev);
 
