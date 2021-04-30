@@ -149,8 +149,9 @@ mt7921_queues_read(struct seq_file *s, void *data)
 	return 0;
 }
 
-static void mt7921_seq_puts_array(struct seq_file *file, const char *str,
-			 s8 *val, int len)
+static void
+mt7921_seq_puts_array(struct seq_file *file, const char *str,
+		      s8 *val, int len)
 {
 	int i;
 
@@ -162,7 +163,6 @@ static void mt7921_seq_puts_array(struct seq_file *file, const char *str,
 			seq_printf(file, " %6d", val[i]);
 	seq_puts(file, "\n");
 }
-
 
 #define mt7921_print_txpwr_entry(prefix, rate)				\
 ({									\
@@ -269,6 +269,7 @@ mt7921_pm_stats(struct seq_file *s, void *data)
 {
 	struct mt7921_dev *dev = dev_get_drvdata(s->private);
 	struct mt76_connac_pm *pm = &dev->pm;
+
 	unsigned long awake_time = pm->stats.awake_time;
 	unsigned long doze_time = pm->stats.doze_time;
 
@@ -280,6 +281,7 @@ mt7921_pm_stats(struct seq_file *s, void *data)
 	seq_printf(s, "awake time: %14u\ndoze time: %15u\n",
 		   jiffies_to_msecs(awake_time),
 		   jiffies_to_msecs(doze_time));
+
 	seq_printf(s, "low power wakes: %9d\n", pm->stats.lp_wake);
 
 	return 0;
